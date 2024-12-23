@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "odin"
+version = "0.1.0"
+description = ""
+authors = ["Matheus Justino <matheus.justino@astra-sa.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+notebook = "^7.3.1"
+polars = "^1.17.1"
+matplotlib = "^3.10.0"
+ultralytics = "^8.3.51"
+albumentations = "^1.4.23"
+torch = {version = "^2.5.1+cu124", source = "pytorch-gpu"}
+torchvision = {version = "^0.20.1+cu124", source = "pytorch-gpu"}
+torchaudio = {version = "^2.5.1+cu124", source = "pytorch-gpu"}
+gradio = "^5.9.1"
+
+[[tool.poetry.source]]
+name = "pytorch-gpu"
+url = "https://download.pytorch.org/whl/cu124"
+priority = "explicit"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+odin="odin.cli:main"
