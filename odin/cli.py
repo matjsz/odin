@@ -7,10 +7,6 @@ import click
 from colorama import Fore
 
 from chronicle_utils import get_chronicle_name
-from dataset_classification import DatasetCommandsClassification
-from dataset_detection import DatasetCommandsDetection
-from start import StartCommand
-from project_utils import get_project_info
 
 logging.basicConfig(
     level=logging.INFO, format=f"[{Fore.YELLOW}%(asctime)s{Fore.RESET}] %(message)s"
@@ -31,6 +27,8 @@ def cli():
 @click.argument("project_name")
 def start(project_type, project_name):
     """Starts a new machine vision project."""
+    from start import StartCommand
+    
     builder = StartCommand(project_type, project_name)
     
     project_builders = {
@@ -67,6 +65,9 @@ def start(project_type, project_name):
 )
 def train(epochs, device, base_model, dataset_name, chronicle_name):
     """Trains the model, generating a new chronile based on a specific dataset. The name of the chronicle is not required, but can be passed."""
+    
+    from project_utils import get_project_info
+    
     chronicle_info = {
         "name": chronicle_name,
         "dataset": dataset_name,
@@ -133,6 +134,10 @@ def train(epochs, device, base_model, dataset_name, chronicle_name):
     help="the version to rollback to, must be a valid version.",
 )
 def dataset(action, dataset_name, train, val, augs, rollver):
+    from dataset_classification import DatasetCommandsClassification
+    from dataset_detection import DatasetCommandsDetection
+    from project_utils import get_project_info
+    
     project_info = get_project_info()
     project_type = project_info["type"]
 
@@ -187,6 +192,7 @@ def wrath():
         logging.info("This land has been purged.")
     else:
         logging.info(f"So the {Fore.RED}Ragnarok{Fore.RESET} must wait.")
+
 
 cli.add_command(start)
 cli.add_command(train)
