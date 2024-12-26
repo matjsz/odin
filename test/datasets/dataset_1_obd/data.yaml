@@ -1,0 +1,8 @@
+
+path: D:\apps\odin\test\datasets\dataset_1_odb
+train: train\images
+val: val\images
+
+names:
+    0: dog
+    1: cat
