@@ -10,8 +10,8 @@ import albumentations as A
 from colorama import Fore
 import cv2
 
-from odin.constants import README_CUSTOM_DATASETS
-from odin.dataset import BaseDatasetCommands
+from constants import README_CUSTOM_DATASETS
+from dataset import BaseDatasetCommands
 
 
 class DatasetCommandsClassification(BaseDatasetCommands):
@@ -20,7 +20,7 @@ class DatasetCommandsClassification(BaseDatasetCommands):
         self.dataset_name = dataset_name
         self.dataset_path = f"{os.path.abspath('.')}\\datasets\\{dataset_name}"
 
-    def _create_dataset_metadata_files(self):
+    def _create_dataset_metadata_files(self, **kwargs):
         os.makedirs(self.dataset_path)
 
         dataset_info = {
@@ -68,7 +68,7 @@ class DatasetCommandsClassification(BaseDatasetCommands):
         )
 
     def _add_image_to_version_snapshot(
-        self, snapshot, dataset_split, dataset_class, image_name, image_binary
+        self, snapshot={}, dataset_split="", dataset_class="", image_name="", image_binary="", **kwargs
     ):
         try:
             snapshot[dataset_split][dataset_class].append(
@@ -85,7 +85,7 @@ class DatasetCommandsClassification(BaseDatasetCommands):
                 }
             ]
 
-    def _execute_data_publishment(self, snapshot, split, dataset_class, split_max_file):
+    def _execute_data_publishment(self, snapshot={}, split="", dataset_class="", split_max_file=0, **kwargs):
         images = []
 
         for _, _, files in os.walk(f"{self.dataset_path}\\staging\\{dataset_class}"):
@@ -114,7 +114,7 @@ class DatasetCommandsClassification(BaseDatasetCommands):
             except IndexError:
                 pass
 
-    def _publish_data(self, update_type, train, val):
+    def _publish_data(self, update_type="", train=0, val=0, *args):
         classes = []
 
         base_version = json.loads(
@@ -221,7 +221,7 @@ class DatasetCommandsClassification(BaseDatasetCommands):
             f"Succesfully registered snapshots for dataset {Fore.CYAN}v{temp_version}{Fore.RESET}"
         )
 
-    def _status_sum_staging(self):
+    def _status_sum_staging(self, **kwargs):
         classes = []
         for x in os.walk(f"{self.dataset_path}\\staging"):
             if len(x[1]) > 0:
@@ -238,7 +238,7 @@ class DatasetCommandsClassification(BaseDatasetCommands):
 
         return final_sum
 
-    def _status_sum_train(self):
+    def _status_sum_train(self, **kwargs):
         classes = []
         for x in os.walk(f"{self.dataset_path}\\staging"):
             if len(x[1]) > 0:
@@ -255,7 +255,7 @@ class DatasetCommandsClassification(BaseDatasetCommands):
 
         return final_sum
 
-    def _augmentate_data(self, augs):
+    def _augmentate_data(self, augmentation_amount=0, **kwargs):
         try:
             classes = []
             for x in os.walk(f"{self.dataset_path}\\staging"):
@@ -277,7 +277,7 @@ class DatasetCommandsClassification(BaseDatasetCommands):
                     return
 
                 logging.info(
-                    f"Augmentating {Fore.CYAN}{dataset_class}{Fore.RESET} {Fore.CYAN}{len(images)}{Fore.RESET} images to a total of {Fore.CYAN}{len(images)+(len(images)*augs)}{Fore.RESET} images..."
+                    f"Augmentating {Fore.CYAN}{dataset_class}{Fore.RESET} {Fore.CYAN}{len(images)}{Fore.RESET} images to a total of {Fore.CYAN}{len(images)+(len(images)*augmentation_amount)}{Fore.RESET} images..."
                 )
                 for image_file in images:
                     image = cv2.imread(
@@ -313,7 +313,7 @@ class DatasetCommandsClassification(BaseDatasetCommands):
                     random.seed(7)
                     data_to_save = []
 
-                    for i in range(0, augs):
+                    for i in range(0, augmentation_amount):
                         data_to_save.append(transform(image=image))
 
                     annotation_id = 0
@@ -331,7 +331,7 @@ class DatasetCommandsClassification(BaseDatasetCommands):
             pass
 
     def _rollback_dataset(
-        self, snapshot_info, rollback_version, dataset_folder, class_folder
+        self, snapshot_info={}, rollback_version="", dataset_folder="", class_folder="", **kwargs
     ):
         shutil.rmtree(f"{self.dataset_path}\\{dataset_folder}\\{class_folder}")
         os.makedirs(f"{self.dataset_path}\\{dataset_folder}\\{class_folder}")
@@ -353,7 +353,7 @@ class DatasetCommandsClassification(BaseDatasetCommands):
             f"Succesfully executed rollback at {Fore.CYAN}{dataset_folder}{Fore.RESET}"
         )
 
-    def _status_show_additional_info(self):
+    def _status_show_additional_info(self, **kwargs):
         classes = []
         for x in os.walk(f"{self.dataset_path}\\staging"):
             if len(x[1]) > 0:
@@ -434,3 +434,8 @@ class DatasetCommandsClassification(BaseDatasetCommands):
                     )
             except:
                 pass
+
+    def yaml(self, **kwargs):
+        logging.info(
+            f"Your dataset type is defined as {Fore.CYAN}Classification{Fore.RESET}, this type of project doesn't require a {Fore.CYAN}data.yaml{Fore.RESET}."
+        )

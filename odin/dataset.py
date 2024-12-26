@@ -27,42 +27,42 @@ class BaseDatasetCommands:
 
         return upgraded_version
 
-    def _create_dataset_metadata_files(self):
+    def _create_dataset_metadata_files(self, **kwargs):
         raise NotImplementedError(
             "This feature is not implemented or is going through maintenance."
         )
 
-    def _publish_data(self, update_type, train, val):
+    def _publish_data(self, update_type="", train="", val="", **kwargs):
         raise NotImplementedError(
             "This feature is not implemented or is going through maintenance."
         )
 
-    def _status_sum_staging(self):
+    def _status_sum_staging(self, **kwargs):
         raise NotImplementedError(
             "This feature is not implemented or is going through maintenance."
         )
 
-    def _status_sum_train(self):
+    def _status_sum_train(self, **kwargs):
         raise NotImplementedError(
             "This feature is not implemented or is going through maintenance."
         )
 
-    def _status_show_additional_info(self):
+    def _status_show_additional_info(self, **kwargs):
         raise NotImplementedError(
             "This feature is not implemented or is going through maintenance."
         )
 
-    def _augmentate_data(self, augs):
+    def _augmentate_data(self, augs=0, **kwargs):
         raise NotImplementedError(
             "This feature is not implemented or is going through maintenance."
         )
 
     def _rollback_dataset(
-        self, snapshot_info, rollback_version, dataset_folder, class_folder
+        self, snapshot_info={}, rollback_version="", dataset_folder="", class_folder="", **kwargs
     ):
         raise NotImplementedError
 
-    def create(self):
+    def create(self, **kwargs):
         logging.info(
             f"Creating dataset '{Fore.BLUE}{self.dataset_name}{Fore.RESET}'..."
         )
@@ -76,7 +76,7 @@ class BaseDatasetCommands:
                 f"This dataset already exists, if you wish to recreate it or simply delete it, use the command {Fore.CYAN}odin dataset delete {self.dataset_name}{Fore.RESET}. This will delete the entire dataset, be careful."
             )
 
-    def publish(self, train, val):
+    def publish(self, train=0, val=0, **kwargs):
         logging.info(
             f"Publishing dataset '{Fore.BLUE}{self.dataset_name}{Fore.RESET}'..."
         )
@@ -92,10 +92,10 @@ class BaseDatasetCommands:
                 type=click.Choice(["fix", "minor", "major"]),
             )
 
-            self._publish_data(update_type, train, val)
+            self._publish_data(update_type=update_type, train=train, val=val)
             logging.info(f"Succesfully published {Fore.GREEN}train{Fore.RESET} data")
 
-    def status(self):
+    def status(self, **kwargs):
         if not os.path.exists(self.dataset_path):
             logging.info(
                 f"The dataset mentioned doesn't exist, create it by using the command {Fore.CYAN}odin dataset create {self.dataset_name}{Fore.RESET}."
@@ -134,15 +134,15 @@ class BaseDatasetCommands:
 
             self._status_show_additional_info()
 
-    def augmentate(self, augmentation_amount):
+    def augmentate(self, augmentation_amount=0, **kwargs):
         if not os.path.exists(self.dataset_path):
             logging.info(
                 f"The dataset mentioned doesn't exist, create it by using the command {Fore.CYAN}odin dataset create {self.dataset_name}{Fore.RESET}."
             )
         else:
-            self._augmentate_data(augmentation_amount)
+            self._augmentate_data(augmentation_amount=augmentation_amount)
 
-    def rollback(self, rollver):
+    def rollback(self, rollver="", **kwargs):
         if not os.path.exists(self.dataset_path):
             logging.info(
                 f"The dataset mentioned doesn't exist, create it by using the command {Fore.CYAN}odin dataset create {self.dataset_name}{Fore.RESET}."
@@ -192,18 +192,18 @@ class BaseDatasetCommands:
                         final_version = rollback_version
                     else:
                         final_version = self._upgrade_version(
-                            dataset_info["version"], "major"
+                            base_version=dataset_info["version"], update_size="major"
                         )
 
                     for dataset_folder in snapshot_info[rollback_version]:
-                        for class_folder in snapshot_info[rollback_version][
+                        for sub_folder in snapshot_info[rollback_version][
                             dataset_folder
                         ]:
                             self._rollback_dataset(
-                                snapshot_info,
-                                rollback_version,
-                                dataset_folder,
-                                class_folder,
+                                snapshot_info=snapshot_info,
+                                rollback_version=rollback_version,
+                                dataset_folder=dataset_folder,
+                                class_folder=sub_folder,
                             )
 
                     dataset_info["version"] = final_version
@@ -229,7 +229,7 @@ class BaseDatasetCommands:
                     "There are no versions to rollback to, this dataset only have one snapshoted version, which is the current one."
                 )
 
-    def delete(self):
+    def delete(self, **kwargs):
         dataset_path = f"{os.path.abspath('.')}\\datasets\\{self.dataset_name}"
 
         if not os.path.exists(dataset_path):
@@ -254,3 +254,6 @@ class BaseDatasetCommands:
                     logging.info(
                         f"{Fore.CYAN}Odin{Fore.RESET} was unable to delete {Fore.CYAN}{self.dataset_name}{Fore.RESET}."
                     )
+
+    def yaml(self, **kwargs):
+        raise NotImplementedError
