@@ -13,6 +13,7 @@ import yaml
 import albumentations as A
 
 from odin.chronicle_utils import get_chronicle_name
+from odin.dataset_classification import DatasetCommandsClassification
 from odin.project_utils import get_project_info, get_project_pretty_type
 
 logging.basicConfig(
@@ -272,19 +273,10 @@ def dataset(action, dataset_name, train, val, augs, rollver):
     project_info = get_project_info()
     project_type = project_info["type"]
 
-    def upgrade_version(base_version, update_size):
-        version = list(map(lambda x: int(x), base_version.split(".")))
-
-        if update_size == "major":
-            version[0] += 1
-        elif update_size == "minor":
-            version[1] += 1
-        elif update_size == "fix":
-            version[2] += 1
-
-        upgraded_version = f"{version[0]}.{version[1]}.{version[2]}"
-
-        return upgraded_version
+    if project_type == "detection":
+        pass
+    elif project_type == "classification":
+        interpreter = DatasetCommandsClassification(dataset_name)
 
     def delete_dataset():
         dataset_path = f"{os.path.abspath('.')}\\datasets\\{dataset_name}"
@@ -311,8 +303,6 @@ def dataset(action, dataset_name, train, val, augs, rollver):
                     logging.info(
                         f"{Fore.CYAN}Odin{Fore.RESET} was unable to delete {Fore.CYAN}{dataset_name}{Fore.RESET}."
                     )
-
-    # OBD
 
     def create_detection():
         # Creating dataset
@@ -770,570 +760,28 @@ def dataset(action, dataset_name, train, val, augs, rollver):
                     f"Your {Fore.CYAN}classes.txt{Fore.RESET} is either empty or non-existant. If you don't have a {Fore.CYAN}classes.txt{Fore.RESET} in your dataset, please provide one so {Fore.CYAN}Odin{Fore.RESET} can generate the YAML file. Read the documentation to know more about how it should be at {Fore.CYAN}datasets/{dataset_name}/CUSTOM_DATASETS.md{Fore.RESET}."
                 )
 
-    # Classification
-
-    def create_classification():
-        # Creating dataset
-        logging.info(f"Creating dataset '{Fore.BLUE}{dataset_name}{Fore.RESET}'...")
-
-        dataset_path = f"{os.path.abspath('.')}\\datasets\\{dataset_name}"
-
-        if not os.path.exists(dataset_path):
-            # Creating dataset final folder
-            logging.info("Creating final folders...")
-
-            os.makedirs(dataset_path)
-
-            dataset_info = {
-                "type": "classification",
-                "version": "0.1.0",
-                "snapshots": {},
-            }
-
-            with open(f"{dataset_path}\\dataset.json", "w", encoding="utf8") as wf:
-                wf.write(json.dumps(dataset_info))
-
-            with open(f"{dataset_path}\\snapshot.json", "w", encoding="utf8") as wf:
-                wf.write(json.dumps({}))
-
-            with open(
-                f"{dataset_path}\\CUSTOM_DATASETS.md", "w", encoding="utf8"
-            ) as wf:
-                wf.write(README_CUSTOM_DATASETS)
-
-            os.makedirs(dataset_path + "\\train")
-            os.makedirs(dataset_path + "\\train\\class_1")
-            os.makedirs(dataset_path + "\\train\\class_2")
-            os.makedirs(dataset_path + "\\val")
-            os.makedirs(dataset_path + "\\val\\class_1")
-            os.makedirs(dataset_path + "\\val\\class_2")
-
-            logging.info("Succesfully created final folders.")
-
-            # Creating dataset staging folder
-
-            logging.info("Creating staging folders...")
-
-            os.makedirs(dataset_path + "\\staging")
-            os.makedirs(dataset_path + "\\staging\\class_1")
-            os.makedirs(dataset_path + "\\staging\\class_2")
-
-            logging.info("Succesfully created staging folders.")
-
-            # Praise the gods! Your dataset folders are created, you can now insert your images and labels on YOLO format at 'dataset_path\\staging' and then run 'odin dataset stage {dataset_name} --train=70 --val=30'
-            logging.info(
-                f"Praise the gods! Your dataset folders are created, you can now insert your {Fore.CYAN}images{Fore.RESET} at {Fore.CYAN}{dataset_path}\\staging{Fore.RESET} and then run {Fore.CYAN}odin dataset stage {dataset_name} --train=70 --val=30{Fore.RESET} (tip: you can change the {Fore.CYAN}--train{Fore.RESET} and {Fore.CYAN}--val{Fore.RESET} values to increase or decrease the split of the dataset)."
-            )
-            logging.info(
-                f"{Fore.GREEN}NOTE{Fore.RESET}: {Fore.CYAN}Odin{Fore.RESET} created two temporary classes as placeholders to your classification project called {Fore.CYAN}class_1{Fore.RESET} and {Fore.CYAN}class_2{Fore.RESET}. You can delete them and include your own classes. If you don't know how to create a classification dataset follow the Ultralytics guide available at: https://docs.ultralytics.com/datasets/classify/#dataset-structure-for-yolo-classification-tasks"
-            )
-
-    def publish_classification():
-        update_type = click.prompt(
-            f"Is this update to the dataset a {Fore.CYAN}fix{Fore.RESET}, {Fore.CYAN}minor{Fore.RESET} or {Fore.CYAN}major{Fore.RESET} update?",
-            show_choices=True,
-            type=click.Choice(["fix", "minor", "major"]),
-        )
-
-        logging.info(f"Publishing dataset '{Fore.BLUE}{dataset_name}{Fore.RESET}'...")
-
-        dataset_path = f"{os.path.abspath('.')}\\datasets\\{dataset_name}"
-
-        if not os.path.exists(dataset_path):
-            logging.info(
-                f"The dataset mentioned doesn't exist, create it by using the command {Fore.CYAN}odin dataset create {dataset_name}{Fore.RESET}."
-            )
-        else:
-            classes = []
-
-            def get_temp_version(base_version, update_size):
-                version = list(map(lambda x: int(x), base_version.split(".")))
-
-                if update_size == "major":
-                    version[0] += 1
-                elif update_size == "minor":
-                    version[1] += 1
-                elif update_size == "fix":
-                    version[2] += 1
-
-                return f"{version[0]}.{version[1]}.{version[2]}"
-
-            base_version = json.loads(
-                open(f"{dataset_path}\\dataset.json", "r", encoding="utf8").read()
-            )["version"]
-            temp_version = get_temp_version(base_version, update_type)
-            snapshot = {
-                "staging": {},
-                "train": {},
-                "val": {},
-            }
-
-            def add_image_to_version_snapshot(
-                dataset_split, dataset_class, image_name, image_binary
-            ):
-                try:
-
-                    snapshot[dataset_split][dataset_class].append(
-                        {
-                            "filename": image_name,
-                            "binary": base64.b64encode(image_binary).decode("utf8"),
-                        }
-                    )
-                except:
-                    snapshot[dataset_split][dataset_class] = [
-                        {
-                            "filename": image_name,
-                            "binary": base64.b64encode(image_binary).decode("utf8"),
-                        }
-                    ]
-
-            def publish_data(destination, class_to_publish, max_file):
-                images = []
-
-                for _, _, files in os.walk(
-                    f"{dataset_path}\\staging\\{class_to_publish}"
-                ):
-                    images = files
-                    break
-
-                for i in range(0, max_file + 1):
-                    try:
-                        image_stage_path = (
-                            f"{dataset_path}\\staging\\{class_to_publish}\\{images[i]}"
-                        )
-                        image_publish_path = f"{dataset_path}\\{destination}\\{class_to_publish}\\{images[i]}"
-
-                        shutil.move(
-                            image_stage_path,
-                            image_publish_path,
-                        )
-
-                        image_binary = open(image_publish_path, "rb").read()
-
-                        add_image_to_version_snapshot(
-                            destination, class_to_publish, images[i], image_binary
-                        )
-                    except IndexError:
-                        pass
-
-            for x in os.walk(f"{dataset_path}\\staging"):
-                if len(x[1]) > 0:
-                    classes = x[1]
-
-            for dataset_class in classes:
-                logging.info(f"Publishing {Fore.CYAN}{dataset_class}{Fore.RESET}")
-
-                if (
-                    sum(
-                        len(files)
-                        for _, _, files in os.walk(
-                            f"{dataset_path}\\staging\\{dataset_class}"
-                        )
-                    )
-                    == 0
-                ):
-                    logging.info(
-                        f"The {Fore.CYAN}Staging{Fore.RESET} dataset for class {Fore.CYAN}{dataset_class}{Fore.RESET} is empty, so nothing will be published or updated for this class. Skipping this one."
-                    )
-                    return
-
-                logging.info("Publishing with the following splits:")
-                logging.info(f"{Fore.CYAN}train{Fore.RESET}: {train}%")
-                logging.info(f"{Fore.CYAN}val{Fore.RESET}: {val}%")
-
-                count_train = int(
-                    (train / 100)
-                    * sum(
-                        len(files)
-                        for _, _, files in os.walk(
-                            f"{dataset_path}\\staging\\{dataset_class}"
-                        )
-                    )
-                )
-
-                count_val = int(
-                    (val / 100)
-                    * sum(
-                        len(files)
-                        for _, _, files in os.walk(
-                            f"{dataset_path}\\staging\\{dataset_class}"
-                        )
-                    )
-                )
-
-                publish_data("train", dataset_class, count_train)
-                logging.info(
-                    f"Succesfully published {Fore.GREEN}train{Fore.RESET} data for class {Fore.CYAN}{dataset_class}{Fore.RESET}"
-                )
-                publish_data("val", dataset_class, count_val)
-                logging.info(
-                    f"Succesfully published {Fore.GREEN}val{Fore.RESET} data for class {Fore.CYAN}{dataset_class}{Fore.RESET}"
-                )
-
-            dataset_info = json.loads(
-                open(f"{dataset_path}\\dataset.json", "r", encoding="utf8").read()
-            )
-            snapshot_info = json.loads(
-                open(f"{dataset_path}\\snapshot.json", "r", encoding="utf8").read()
-            )
-
-            snapshot_info[temp_version] = snapshot
-            dataset_info["version"] = temp_version
-
-            with open(f"{dataset_path}\\dataset.json", "w", encoding="utf8") as wf:
-                wf.write(json.dumps(dataset_info, indent=4))
-            logging.info(
-                f"Succesfully updated dataset version to {Fore.CYAN}v{temp_version}{Fore.RESET}"
-            )
-
-            with open(f"{dataset_path}\\snapshot.json", "w", encoding="utf8") as wf:
-                wf.write(json.dumps(snapshot_info, indent=4))
-            logging.info(
-                f"Succesfully registered snapshots for dataset {Fore.CYAN}v{temp_version}{Fore.RESET}"
-            )
-
-    def status_classification():
-        dataset_path = f"{os.path.abspath('.')}\\datasets\\{dataset_name}"
-
-        if not os.path.exists(dataset_path):
-            logging.info(
-                f"The dataset mentioned doesn't exist, create it by using the command {Fore.CYAN}odin dataset create {dataset_name}{Fore.RESET}."
-            )
-        else:
-            # Status
-            status = {
-                "empty": f"{Fore.YELLOW}Empty{Fore.RESET}",
-                "staging": f"{Fore.YELLOW}Staging{Fore.RESET}",
-                "published": f"{Fore.GREEN}Published{Fore.RESET}",
-                "published_staging": f"{Fore.CYAN}Published and Staging{Fore.RESET}",
-            }
-
-            dataset_info = json.loads(
-                open(f"{dataset_path}\\dataset.json", "r", encoding="utf8").read()
-            )
-
-            logging.info(f"Dataset version: {dataset_info['version']}")
-
-            classes = []
-            for x in os.walk(f"{dataset_path}\\staging"):
-                if len(x[1]) > 0:
-                    classes = x[1]
-
-            staging = sum(
-                len(files)
-                for _, _, files in os.walk(f"{dataset_path}\\staging\\{classes[0]}")
-            )
-            train = sum(
-                len(files)
-                for _, _, files in os.walk(f"{dataset_path}\\train\\{classes[0]}")
-            )
-
-            if staging > 0 and train > 0:
-                logging.info(
-                    f"Retrieving {Fore.CYAN}{dataset_name}{Fore.RESET} status..."
-                )
-                logging.info(f"Status: {status['published_staging']}")
-            elif staging > 0 and train == 0:
-                logging.info(
-                    f"Retrieving {Fore.CYAN}{dataset_name}{Fore.RESET} status..."
-                )
-                logging.info(f"Status: {status['staging']}")
-            elif train > 0 and staging == 0:
-                logging.info(
-                    f"Retrieving {Fore.CYAN}{dataset_name}{Fore.RESET} status..."
-                )
-                logging.info(f"Status: {status['published']}")
-            else:
-                logging.info(
-                    f"Retrieving {Fore.CYAN}{dataset_name}{Fore.RESET} status..."
-                )
-                logging.info(f"Status: {status['empty']}")
-
-            train_images_count = 0
-            val_images_count = 0
-            # Image Count
-            for dataset_class in classes:
-                train_images_count += sum(
-                    len(files)
-                    for _, _, files in os.walk(
-                        f"{dataset_path}\\train\\{dataset_class}"
-                    )
-                )
-                val_images_count += sum(
-                    len(files)
-                    for _, _, files in os.walk(f"{dataset_path}\\val\\{dataset_class}")
-                )
-
-            logging.info(
-                f"Images on {Fore.CYAN}train{Fore.RESET}: {train_images_count}"
-            )
-            logging.info(f"Images on {Fore.CYAN}val{Fore.RESET}: {val_images_count}")
-
-            # Class count
-            if train == 0:
-                return
-
-            train_count_info = {}
-            val_count_info = {}
-
-            for dataset_class in classes:
-                train_count_info[dataset_class] = 0
-                val_count_info[dataset_class] = 0
-
-            for dataset_class in classes:
-                train_count_info[dataset_class] += sum(
-                    len(files)
-                    for _, _, files in os.walk(
-                        f"{dataset_path}\\train\\{dataset_class}"
-                    )
-                )
-                val_count_info[dataset_class] += sum(
-                    len(files)
-                    for _, _, files in os.walk(f"{dataset_path}\\val\\{dataset_class}")
-                )
-
-            logging.info(f"Class count on {Fore.CYAN}train{Fore.RESET}:")
-            for class_id in train_count_info:
-                try:
-                    if train_count_info[class_id] == 0:
-                        logging.info(
-                            f"{Fore.CYAN}{class_id}{Fore.RESET}: {Fore.LIGHTRED_EX}{train_count_info[class_id]}{Fore.RESET}"
-                        )
-                    else:
-                        logging.info(
-                            f"{Fore.CYAN}{class_id}{Fore.RESET}: {train_count_info[class_id]}"
-                        )
-                except:
-                    pass
-
-            logging.info(f"Class count on {Fore.CYAN}val{Fore.RESET}:")
-            for class_id in val_count_info:
-                try:
-                    if val_count_info[class_id] == 0:
-                        logging.info(
-                            f"{Fore.CYAN}{class_id}{Fore.RESET}: {Fore.LIGHTRED_EX}{val_count_info[class_id]}{Fore.RESET}"
-                        )
-                    else:
-                        logging.info(
-                            f"{Fore.CYAN}{class_id}{Fore.RESET}: {val_count_info[class_id]}"
-                        )
-                except:
-                    pass
-
-    def augmentate_classification():
-        dataset_path = f"{os.path.abspath('.')}\\datasets\\{dataset_name}"
-
-        if not os.path.exists(dataset_path):
-            logging.info(
-                f"The dataset mentioned doesn't exist, create it by using the command {Fore.CYAN}odin dataset create {dataset_name}{Fore.RESET}."
-            )
-        else:
-            try:
-                classes = []
-                for x in os.walk(f"{dataset_path}\\staging"):
-                    if len(x[1]) > 0:
-                        classes = x[1]
-
-                for dataset_class in classes:
-                    images = []
-                    for _, _, files in os.walk(
-                        f"{dataset_path}\\train\\{dataset_class}"
-                    ):
-                        images = files
-                        break
-
-                    if len(images) == 0:
-                        logging.info(
-                            f"There are no images for {Fore.CYAN}{dataset_class}{Fore.RESET}, skipping the augmentation process for this class."
-                        )
-                        return
-
-                    logging.info(
-                        f"Augmentating {Fore.CYAN}{dataset_class}{Fore.RESET} {Fore.CYAN}{len(images)}{Fore.RESET} images to a total of {Fore.CYAN}{len(images)+(len(images)*augs)}{Fore.RESET} images..."
-                    )
-                    for image_file in images:
-                        image = cv2.imread(
-                            f"{dataset_path}\\train\\{dataset_class}\\{image_file}"
-                        )
-
-                        image_id = (
-                            image_file.split(".png")[0]
-                            .split(".jpg")[0]
-                            .split(".jpeg")[0]
-                        )
-
-                        image_height, image_width, image_channels = image.shape
-                        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-                        transform = A.Compose(
-                            [
-                                A.HorizontalFlip(p=0.5),
-                                # A.ShiftScaleRotate(p=0.5),
-                                A.RandomCropFromBorders(p=0.5),
-                                A.RandomBrightnessContrast(p=0.5),
-                                A.RGBShift(
-                                    r_shift_limit=(-50, 50),
-                                    g_shift_limit=(-50, 50),
-                                    b_shift_limit=(-50, 50),
-                                    p=0.5,
-                                ),
-                                A.CLAHE(p=0.5),
-                                A.ISONoise(intensity=(0.3, 0.5), p=0.5),
-                                A.RandomGravel(p=0.5),
-                                A.HueSaturationValue(p=0.5),
-                            ]
-                        )
-
-                        random.seed(7)
-                        data_to_save = []
-
-                        for i in range(0, augs):
-                            data_to_save.append(transform(image=image))
-
-                        annotation_id = 0
-                        for data in data_to_save:
-                            image = cv2.cvtColor(data["image"], cv2.COLOR_BGR2RGB)
-                            cv2.imwrite(
-                                f"{dataset_path}\\train\\{dataset_class}\\{image_id}-{annotation_id}.png",
-                                image,
-                            )
-
-                            annotation_id += 1
-
-                logging.info("Succesfully augmented all images.")
-            except Exception as e:
-                pass
-
-    def rollback_classification():
-        dataset_path = f"{os.path.abspath('.')}\\datasets\\{dataset_name}"
-
-        if not os.path.exists(dataset_path):
-            logging.info(
-                f"The dataset mentioned doesn't exist, create it by using the command {Fore.CYAN}odin dataset create {dataset_name}{Fore.RESET}."
-            )
-        else:
-            dataset_info = json.loads(
-                open(f"{dataset_path}\\dataset.json", "r", encoding="utf8").read()
-            )
-            snapshot_info = json.loads(
-                open(f"{dataset_path}\\snapshot.json", "r", encoding="utf8").read()
-            )
-            dataset_versions = []
-
-            for version in snapshot_info:
-                if version != dataset_info["version"]:
-                    dataset_versions.append(version)
-
-            if len(dataset_versions) > 0:
-                if not rollver:
-                    rollback_version = click.prompt(
-                        f"Which version you want to rollback to?",
-                        show_choices=True,
-                        type=click.Choice(dataset_versions),
-                    )
-
-                    print(rollback_version)
-                else:
-                    if rollver.lower().replace("v", "") in dataset_versions:
-                        rollback_version = rollver
-                    else:
-                        logging.info(
-                            f"The version {Fore.LIGHTRED_EX}{rollver}{Fore.RESET} doesn't exist."
-                        )
-                        return
-
-                # Add binaries from rollback version to actual version
-                rollback_format = click.prompt(
-                    f"Will the rollback replace the current version with the old one or create a new major version? (replace, create)",
-                    show_choices=True,
-                    type=click.Choice(["replace", "create"]),
-                )
-
-                if click.confirm(
-                    "Do you want to continue? This action with replace all of your current files to a older version, the files might be deleted as well, this is not a merge."
-                ):
-                    if rollback_format == "replace":
-                        final_version = rollback_version
-                    else:
-                        final_version = upgrade_version(
-                            dataset_info["version"], "major"
-                        )
-
-                    for dataset_folder in snapshot_info[rollback_version]:
-                        for class_folder in snapshot_info[rollback_version][
-                            dataset_folder
-                        ]:
-                            shutil.rmtree(
-                                f"{dataset_path}\\{dataset_folder}\\{class_folder}"
-                            )
-                            os.makedirs(
-                                f"{dataset_path}\\{dataset_folder}\\{class_folder}"
-                            )
-
-                            for file_data in snapshot_info[rollback_version][
-                                dataset_folder
-                            ][class_folder]:
-                                img_bin = file_data["binary"]
-                                img_name = file_data["filename"]
-
-                                encoded_content = img_bin.encode()
-                                content = base64.b64decode(encoded_content)
-
-                                with open(
-                                    f"{dataset_path}\\{dataset_folder}\\{class_folder}\\{img_name}",
-                                    "wb",
-                                ) as wf:
-                                    wf.write(content)
-
-                            logging.info(
-                                f"Succesfully executed rollback at {Fore.CYAN}{dataset_folder}{Fore.RESET}"
-                            )
-
-                    dataset_info["version"] = final_version
-
-                    if rollback_format == "create":
-                        snapshot_info[final_version] = snapshot_info[rollback_version]
-
-                    with open(
-                        f"{dataset_path}\\dataset.json", "w", encoding="utf8"
-                    ) as wf:
-                        wf.write(json.dumps(dataset_info))
-
-                    with open(
-                        f"{dataset_path}\\snapshot.json", "w", encoding="utf8"
-                    ) as wf:
-                        wf.write(json.dumps(snapshot_info))
-
-                    logging.info(
-                        f"Succesfuly executed rollback to version {Fore.CYAN}{rollback_version}{Fore.RESET}, now at version {Fore.CYAN}{final_version}{Fore.RESET}"
-                    )
-            else:
-                logging.info(
-                    "There are no versions to rollback to, this dataset only have one snapshoted version, which is the current one."
-                )
-
     if action == "create":
         if project_type == "detection":
             create_detection()
         elif project_type == "classification":
-            create_classification()
+            interpreter.create()
     elif action == "publish":
         if project_type == "detection":
             publish_detection()
         elif project_type == "classification":
-            publish_classification()
+            interpreter.publish(train, val)
     elif action == "status":
         if project_type == "detection":
             status_detection()
         elif project_type == "classification":
-            status_classification()
+            interpreter.status()
     elif action == "delete":
         delete_dataset()
     elif action == "augmentate":
         if project_type == "detection":
             augmentate_detection()
         elif project_type == "classification":
-            augmentate_classification()
+            interpreter.augmentate(augs)
     elif action == "yaml":
         if project_type == "detection":
             yaml_detection()
@@ -1345,7 +793,7 @@ def dataset(action, dataset_name, train, val, augs, rollver):
         if project_type == "detection":
             pass
         elif project_type == "classification":
-            rollback_classification()
+            interpreter.rollback(rollver)
 
 
 @click.command("wrath")
