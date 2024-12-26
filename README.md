@@ -4,8 +4,6 @@
 
 # Installation
 
-The package is not published yet, but will soon be published on PyPi under the name of:
-
 ```
 pip install odin-vision
 ```
