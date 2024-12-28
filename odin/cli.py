@@ -17,17 +17,35 @@ def cli():
     pass
 
 @click.command("start")
+@click.argument("project_name", default=None, required=False)
 @click.option(
     "-t",
     "--type",
     "project_type",
-    default="detection",
+    default=None,
     help="the project's type, must be either 'detection' (object detection) or 'classification'.",
 )
-@click.argument("project_name")
 def start(project_type, project_name):
     """Starts a new machine vision project."""
     from start import StartCommand
+    
+    if not project_name:
+        confirmed_name = False
+        
+        while not confirmed_name:
+            project_name = click.prompt(
+                f"What is the project's name?"
+            )
+            
+            if click.confirm(f'{Fore.CYAN}{project_name}{Fore.RESET}, is this name right?'):
+                confirmed_name = True
+    
+    if not project_type:
+        project_type = click.prompt(
+            f"What is the project's type?",
+            show_choices=True,
+            type=click.Choice([f'{Fore.CYAN}classification{Fore.RESET}', f'{Fore.CYAN}detection{Fore.RESET}']),
+        )
     
     builder = StartCommand(project_type, project_name)
     
@@ -65,6 +83,7 @@ def start(project_type, project_name):
 )
 def train(epochs, device, base_model, dataset_name, chronicle_name):
     """Trains the model, generating a new chronile based on a specific dataset. The name of the chronicle is not required, but can be passed."""
+    # Command interface for model training.
     
     from project_utils import get_project_info
     
@@ -103,7 +122,15 @@ def train(epochs, device, base_model, dataset_name, chronicle_name):
 
 
 @click.command("dataset")
-@click.argument("action")
+@click.argument("action", type=click.Choice([
+    'create',
+    'publish',
+    'status',
+    'delete', 
+    'augmentate',
+    'rollback', 
+    'yaml'
+]))
 @click.argument("dataset_name")
 @click.option(
     "-t",
@@ -134,6 +161,8 @@ def train(epochs, device, base_model, dataset_name, chronicle_name):
     help="the version to rollback to, must be a valid version.",
 )
 def dataset(action, dataset_name, train, val, augs, rollver):
+    """Command interface for dataset management."""
+    
     from dataset_classification import DatasetCommandsClassification
     from dataset_detection import DatasetCommandsDetection
     from project_utils import get_project_info
