@@ -7,3 +7,10 @@
 ```
 pip install odin-vision
 ```
+
+# Roadmap
+
+Features planned for the next updates:
+
+- [ ] Automated training, model versioning
+- [ ] Integration with PyTorch Lightning for performance
