@@ -20,7 +20,7 @@ $ odin dataset create
 $ odin train [dataset] --epochs=30 --chronicle={chronicle} --subset=50 (percentage)
 
 Training with {subset}% of the dataset...
-Defined as "pre_test" version.
+Defined as "naive" version.
 Trained to chronicle {chronicle}
 
 You can test this version by using the command odin test {chronicle}
@@ -38,7 +38,7 @@ If all went okay, train the wise version.
 $ odin train [dataset] --epochs=30 --chronicle={chronicle}
 
 Training with 100% of the dataset...
-Defined as "pre"
+Defined as "wise"
 Trained to chronicle {chronicle}
 
 You can test this version by using the command odin test {chronicle}
