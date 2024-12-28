@@ -24,18 +24,18 @@ class DatasetCommandsDetection(BaseDatasetCommands):
         self.dataset_path = f"{os.path.abspath('.')}\\datasets\\{dataset_name}"
         
     def _create_dataset_metadata_files(self, **kwargs):
-        os.makedirs(self.dataset_path)
+        self._try_create_folder(self.dataset_path)
         
         dataset_info = {"type": "obd", "version": "0.1.0", "snapshots": {}}
         
-        with open(f"{self.self.dataset_path}\\dataset.json", "w", encoding="utf8") as wf:
+        with open(f"{self.dataset_path}\\dataset.json", "w", encoding="utf8") as wf:
             wf.write(json.dumps(dataset_info))
 
-        with open(f"{self.self.dataset_path}\\snapshot.json", "w", encoding="utf8") as wf:
+        with open(f"{self.dataset_path}\\snapshot.json", "w", encoding="utf8") as wf:
             wf.write(json.dumps({}))
             
         with open(
-            f"{self.self.dataset_path}\\CUSTOM_DATASETS.md", "w", encoding="utf8"
+            f"{self.dataset_path}\\CUSTOM_DATASETS.md", "w", encoding="utf8"
         ) as wf:
             wf.write(README_CUSTOM_DATASETS)
             
@@ -44,19 +44,19 @@ class DatasetCommandsDetection(BaseDatasetCommands):
             
         logging.info("Creating staging folders...")
         
-        os.makedirs(self.dataset_path + "\\staging")
-        os.makedirs(self.dataset_path + "\\staging\\images")
-        os.makedirs(self.dataset_path + "\\staging\\labels")
+        self._try_create_folder(self.dataset_path + "\\staging")
+        self._try_create_folder(self.dataset_path + "\\staging\\images")
+        self._try_create_folder(self.dataset_path + "\\staging\\labels")
 
         logging.info("Succesfully created staging folders.")
 
-        os.makedirs(self.dataset_path)
-        os.makedirs(self.dataset_path + "\\train")
-        os.makedirs(self.dataset_path + "\\train\\images")
-        os.makedirs(self.dataset_path + "\\train\\labels")
-        os.makedirs(self.dataset_path + "\\val")
-        os.makedirs(self.dataset_path + "\\val\\images")
-        os.makedirs(self.dataset_path + "\\val\\labels")
+        self._try_create_folder(self.dataset_path)
+        self._try_create_folder(self.dataset_path + "\\train")
+        self._try_create_folder(self.dataset_path + "\\train\\images")
+        self._try_create_folder(self.dataset_path + "\\train\\labels")
+        self._try_create_folder(self.dataset_path + "\\val")
+        self._try_create_folder(self.dataset_path + "\\val\\images")
+        self._try_create_folder(self.dataset_path + "\\val\\labels")
         
         logging.info("Succesfully created dataset folders.")
         
