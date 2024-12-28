@@ -44,7 +44,7 @@ def start(project_type, project_name):
         project_type = click.prompt(
             f"What is the project's type?",
             show_choices=True,
-            type=click.Choice([f'{Fore.CYAN}classification{Fore.RESET}', f'{Fore.CYAN}detection{Fore.RESET}']),
+            type=click.Choice([f'classification', f'detection']),
         )
     
     builder = StartCommand(project_type, project_name)
@@ -61,7 +61,11 @@ def start(project_type, project_name):
     builder.create_models_structure()
 
 @click.command("model")
-@click.argument("action")
+@click.argument("action", type=click.Choice([
+    'train',
+    'test',
+    'publish'
+]))
 @click.option(
     "--epochs",
     default=30,
@@ -74,7 +78,7 @@ def start(project_type, project_name):
 )
 @click.option(
     "--base_model",
-    default="yolo11n.pt",
+    default=None,
     help="the pre-trained model to use for training.",
 )
 @click.option(
@@ -100,17 +104,16 @@ def model(action, epochs, device, base_model, subset, dataset_name, chronicle_na
     """Trains the model, generating a new chronile based on a specific dataset. The name of the chronicle is not required, but can be passed."""
     # Command interface for model training.
     
-    from training_detection import DetectionTrainingCommands
     from project_utils import get_project_info
-
     project_info = get_project_info()
     project_type = project_info["type"]
                 
     if project_type == "detection":
+        from training_detection import DetectionTrainingCommands
         interpreter = DetectionTrainingCommands(project_type, dataset_name)
     elif project_type == "classification":
-        logging.info("Not implemented yet.")
-        return
+        from training_classification import ClassificationTrainingCommands
+        interpreter = ClassificationTrainingCommands(project_type, dataset_name)
     
     commands = {
         "train": interpreter.train,
@@ -130,7 +133,7 @@ def model(action, epochs, device, base_model, subset, dataset_name, chronicle_na
     'rollback', 
     'yaml'
 ]))
-@click.argument("dataset_name", required=False)
+@click.option("-D", "--dataset_name", "dataset_name", default=None, help="the dataset name.")
 @click.option(
     "-t",
     "--train",
