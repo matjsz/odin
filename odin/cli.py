@@ -114,10 +114,11 @@ def model(action, epochs, device, base_model, subset, dataset_name, chronicle_na
     
     commands = {
         "train": interpreter.train,
-        "test": interpreter.test
+        "test": interpreter.test,
+        "publish": interpreter.publish
     }
     
-    commands[action](epochs=epochs, device=device, base_model=base_model, dataset_name=dataset_name, chronicle_name=chronicle_name, subset=subset)
+    commands[action](epochs=epochs, project_name=project_info["name"], device=device, base_model=base_model, dataset_name=dataset_name, chronicle_name=chronicle_name, subset=subset)
 
 @click.command("dataset")
 @click.argument("action", type=click.Choice([
