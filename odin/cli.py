@@ -60,7 +60,8 @@ def start(project_type, project_name):
 
     builder.create_models_structure()
 
-@click.command("train")
+@click.command("model")
+@click.argument("action")
 @click.option(
     "--epochs",
     default=30,
@@ -79,41 +80,31 @@ def start(project_type, project_name):
 @click.option(
     "--subset",
     default=100,
-    help="the pre-trained model to use for training.",
+    help="the percentage of the training dataset to use for the actual training of the model.",
 )
-@click.argument("dataset_name")
-@click.argument(
+@click.option(
+    "-C",
+    "--chronicle",
     "chronicle_name",
     default=None,
-    required=False
+    help="the name of the chronicle to use."
 )
-def train(epochs, device, base_model, subset, dataset_name, chronicle_name):
+@click.option(
+    "-D",
+    "--dataset",
+    "dataset_name",
+    default=None,
+    help="the name of the dataset to use."
+)
+def model(action, epochs, device, base_model, subset, dataset_name, chronicle_name):
     """Trains the model, generating a new chronile based on a specific dataset. The name of the chronicle is not required, but can be passed."""
     # Command interface for model training.
     
     from training_detection import DetectionTrainingCommands
     from project_utils import get_project_info
-    
-    chronicle_info = {
-        "name": chronicle_name,
-        "dataset": dataset_name,
-        "epochs": epochs,
-        "device": device,
-    }
 
     project_info = get_project_info()
     project_type = project_info["type"]
-
-    if not dataset_name:
-        confirmed_name = False
-        
-        while not confirmed_name:
-            dataset_name = click.prompt(
-                f"What is the dataset's name?"
-            )
-            
-            if click.confirm(f'{Fore.CYAN}{dataset_name}{Fore.RESET}, is this name right?'):
-                confirmed_name = True
                 
     if project_type == "detection":
         interpreter = DetectionTrainingCommands(project_type, dataset_name)
@@ -121,8 +112,12 @@ def train(epochs, device, base_model, subset, dataset_name, chronicle_name):
         logging.info("Not implemented yet.")
         return
     
-    interpreter.train(epochs, device, base_model, chronicle_name, subset)
-
+    commands = {
+        "train": interpreter.train,
+        "test": interpreter.test
+    }
+    
+    commands[action](epochs=epochs, device=device, base_model=base_model, dataset_name=dataset_name, chronicle_name=chronicle_name, subset=subset)
 
 @click.command("dataset")
 @click.argument("action", type=click.Choice([
@@ -238,9 +233,9 @@ def wrath():
 
 
 cli.add_command(start)
-cli.add_command(train)
 cli.add_command(wrath)
 cli.add_command(dataset)
+cli.add_command(model)
 
 if __name__ == "__main__":
     cli()
