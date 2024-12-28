@@ -16,6 +16,9 @@ from training import BaseTrainingCommands
 
 class DetectionTrainingCommands(BaseTrainingCommands):
     def train(self, epochs: int=0, device: str="", base_model: str="", dataset_name: str="", chronicle_name: str="", subset: int=0, **kwargs):
+        if not base_model:
+            base_model = "yolo11n.pt"
+        
         if subset < 100:
             model_type = "naive"
         else:
