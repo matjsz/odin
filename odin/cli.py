@@ -9,7 +9,7 @@ from colorama import Fore
 from chronicle_utils import get_chronicle_name
 
 logging.basicConfig(
-    level=logging.INFO, format=f"[{Fore.YELLOW}%(asctime)s{Fore.RESET}] %(message)s"
+    level=logging.INFO, format=f"[{Fore.CYAN}ODIN{Fore.RESET}][{Fore.YELLOW}%(asctime)s{Fore.RESET}] %(message)s"
 )
 
 @click.group()
@@ -76,15 +76,22 @@ def start(project_type, project_name):
     default="yolo11n.pt",
     help="the pre-trained model to use for training.",
 )
+@click.option(
+    "--subset",
+    default=100,
+    help="the pre-trained model to use for training.",
+)
 @click.argument("dataset_name")
 @click.argument(
     "chronicle_name",
-    default=get_chronicle_name,
+    default=None,
+    required=False
 )
-def train(epochs, device, base_model, dataset_name, chronicle_name):
+def train(epochs, device, base_model, subset, dataset_name, chronicle_name):
     """Trains the model, generating a new chronile based on a specific dataset. The name of the chronicle is not required, but can be passed."""
     # Command interface for model training.
     
+    from training_detection import DetectionTrainingCommands
     from project_utils import get_project_info
     
     chronicle_info = {
@@ -96,29 +103,25 @@ def train(epochs, device, base_model, dataset_name, chronicle_name):
 
     project_info = get_project_info()
     project_type = project_info["type"]
-    task = "detect" if project_type == "detection" else "classify"
 
-    logging.info("Starting training...")
-
-    subprocess.run(
-        [
-            "yolo",
-            task,
-            "train",
-            f"data={os.path.abspath('.')}\\datasets\\{dataset_name}\\data.yaml",
-            f"epochs={epochs}",
-            f"batch={'-1' if device == 'gpu' else '2'}",
-            f"model={base_model}",
-            "amp=false",
-            "patience=10",
-            "save_period=5",
-            f"device={'0' if device == 'gpu' else 'cpu'}",
-            f"project={chronicle_name}",
-            f"name={str(uuid.uuid4())}",
-            "exist_ok=true",
-            "plots=true",
-        ]
-    )
+    if not dataset_name:
+        confirmed_name = False
+        
+        while not confirmed_name:
+            dataset_name = click.prompt(
+                f"What is the dataset's name?"
+            )
+            
+            if click.confirm(f'{Fore.CYAN}{dataset_name}{Fore.RESET}, is this name right?'):
+                confirmed_name = True
+                
+    if project_type == "detection":
+        interpreter = DetectionTrainingCommands(project_type, dataset_name)
+    elif project_type == "classification":
+        logging.info("Not implemented yet.")
+        return
+    
+    interpreter.train(epochs, device, base_model, chronicle_name, subset)
 
 
 @click.command("dataset")
@@ -131,7 +134,7 @@ def train(epochs, device, base_model, dataset_name, chronicle_name):
     'rollback', 
     'yaml'
 ]))
-@click.argument("dataset_name")
+@click.argument("dataset_name", required=False)
 @click.option(
     "-t",
     "--train",
@@ -169,6 +172,17 @@ def dataset(action, dataset_name, train, val, augs, rollver):
     
     project_info = get_project_info()
     project_type = project_info["type"]
+
+    if not dataset_name:
+        confirmed_name = False
+        
+        while not confirmed_name:
+            dataset_name = click.prompt(
+                f"What is the dataset's name?"
+            )
+            
+            if click.confirm(f'{Fore.CYAN}{dataset_name}{Fore.RESET}, is this name right?'):
+                confirmed_name = True
 
     if project_type == "detection":
         interpreter = DatasetCommandsDetection(dataset_name)
