@@ -14,14 +14,52 @@ $ odin dataset create
 
 # Training a new model
 
-```
-$ odin train [dataset] --epochs=30 --chronicle={chronicle}
+## Naive version
 
-Training...
+```
+$ odin train [dataset] --epochs=30 --chronicle={chronicle} --subset=50 (percentage)
+
+Training with {subset}% of the dataset...
+Defined as "pre_test" version.
 Trained to chronicle {chronicle}
-Consider publishing the weights to a final version
-``` 
+
+You can test this version by using the command odin test {chronicle}
+```
 
 ```
 $ odin test [chronicle]
 ```
+
+If all went okay, train the wise version.
+
+## Wise version
+
+```
+$ odin train [dataset] --epochs=30 --chronicle={chronicle}
+
+Training with 100% of the dataset...
+Defined as "pre"
+Trained to chronicle {chronicle}
+
+You can test this version by using the command odin test {chronicle}
+```
+
+It will generate the weight `{year}_{month}_{day}_{H}{M}{S}.pt` at `chronicles/{chronicle}/weights`.
+
+```
+$ odin test [chronicle]
+```
+
+Time to publish it!
+
+# Publishing a new model
+
+```
+$ odin publish [model]
+
+Publishing model [model]...
+Model [model] published succesfully.
+Generated version '{project}_{year}_{month}_{day}_{chronicle}.pt'
+```
+
+Example model name: `car_detector_2024-12-1_epic-ninja.pt`
