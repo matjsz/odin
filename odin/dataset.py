@@ -13,6 +13,14 @@ class BaseDatasetCommands:
         self.dataset_name = dataset_name
         self.dataset_path = f"{os.path.abspath('.')}\\datasets\\{dataset_name}"
 
+    def _try_create_folder(self, folder_path):
+        try:
+            os.makedirs(folder_path)
+        except FileExistsError:
+            pass
+        except Exception as e:
+            logging.info(f"Something went wrong while trying to create {Fore.CYAN}{folder_path}{Fore.RESET}: {e}")
+
     def _upgrade_version(self, base_version, update_size):
         version = list(map(lambda x: int(x), base_version.split(".")))
 
