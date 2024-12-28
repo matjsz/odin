@@ -12,5 +12,11 @@ pip install odin-vision
 
 Features planned for the next updates:
 
-- [ ] Automated training, model versioning
+- [x] Automated dataset generation
+- [x] Dataset versioning
+- [x] Dataset rollback
+- [x] Automated training
+- [x] Model versioning
+- [ ] Automated testing report generation
+- [ ] Odin programmatic API
 - [ ] Integration with PyTorch Lightning for performance
