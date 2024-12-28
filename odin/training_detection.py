@@ -1,7 +1,9 @@
 
+import datetime
 import json
 import logging
 import os
+import shutil
 import time
 
 import click
@@ -78,12 +80,10 @@ class DetectionTrainingCommands(BaseTrainingCommands):
             " ".join(yolo_command)
         )
         
-        time.sleep(1)
-        
         self._try_create_model_snapshot(model_type, chronicle_path)
         
         logging.info(f"Trained to chronicle {Fore.CYAN}{chronicle_name}{Fore.RESET}")
-        logging.info(f"You can test this version by using the command {Fore.CYAN}odin test {chronicle_name}{Fore.RESET}")
+        logging.info(f"You can test this version by using the command {Fore.CYAN}odin test --chronicle {chronicle_name}{Fore.RESET}")
         
     def test(self, chronicle_name: str="", **kwargs):
         if not chronicle_name:
@@ -147,3 +147,52 @@ class DetectionTrainingCommands(BaseTrainingCommands):
         for result in odin_results:
             logging.info(f"Speed: {result.inference_speed}")
             result.show()
+            
+    def publish(self, project_name: str="", chronicle_name: str="", **kwargs):
+        if not chronicle_name:
+            confirmed_name = False
+            
+            while not confirmed_name:
+                chronicle_name = click.prompt(
+                    f"What is the chronicle's name?"
+                )
+                
+                if click.confirm(f'{Fore.CYAN}{chronicle_name}{Fore.RESET}, is this name right?'):
+                    confirmed_name = True
+        
+        chronicle_data = self._get_chronicle_data(f"{os.path.abspath('.')}\\chronicles\\{chronicle_name}")
+        
+        chronicle_models_path = f"{os.path.abspath('.')}\\chronicles\\{chronicle_name}\\weights"
+        eligible_models = []
+        
+        for _, _, files in os.walk(chronicle_models_path):
+            for file in files:
+                if self._check_if_eligible_model(file):
+                    eligible_models.append(file)
+            
+        eligible_models.sort(reverse=True)
+            
+        model_selection = {}
+        model_id = 0
+        model_id_options = []
+        for model in eligible_models:
+            model_selection[str(model_id)] = model
+            model_id_options.append(str(model_id))
+            model_id += 1
+        
+        print("")
+        for model_selection_id in model_selection:
+            print(f"{Fore.CYAN}{model_selection_id}{Fore.RESET} - {model_selection[model_selection_id]}")
+        print("")
+        
+        model_selected = model_selection[click.prompt("Select a model to test", default="0", show_choices=True, type=click.Choice(model_id_options))]
+        print("")
+        
+        logging.info(f"Publishing model {Fore.CYAN}{model_selected}{Fore.RESET}...")
+        
+        now = datetime.datetime.now()
+        new_model_name = f"{project_name}_{now.year}_{now.month}_{now.day}_{chronicle_name}.pt"
+        
+        shutil.copy(f"{os.path.abspath('.')}\\chronicles\\{chronicle_name}\\weights\\{model_selected}", f"{os.path.abspath('.')}\\weights\\{new_model_name}")
+        
+        logging.info(f"Succesfully published model {Fore.CYAN}{model_selected}{Fore.RESET} as {Fore.CYAN}{new_model_name}{Fore.RESET}...")
