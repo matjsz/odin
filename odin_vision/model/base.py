@@ -54,7 +54,7 @@ class BaseModelCommands:
             try:
                 shutil.copyfile(f"{chronicle_path}\\weights\\best.pt", f"{chronicle_path}\\weights\\pre_{now.year}_{now.month}_{now.day}_{now.hour}{now.minute}{now.second}.pt")
 
-                logging.info(f"Model saved at: {Fore.CYAN}{chronicle_path}\\weights\\pre_{now.year}_{now.month}_{now.day}_{now.hour}{now.minute}{now.second}.pt{Fore.RESET}")
+                logging.info(f"Model saved at: {Fore.CYAN}{chronicle_path}\\weights\\pre.{now.year}.{now.month}.{now.day}.{now.hour}{now.minute}{now.second}.pt{Fore.RESET}")
             except Exception as e:
                 logging.info(f"Couldn't create model snapshot, something went wrong: {e}")
         elif type == "wise":
