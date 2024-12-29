@@ -1,5 +1,6 @@
 import os
 
+PROJECT_TYPES = ["detection", "classification"]
 
 EXAMPLE_YAML = f"""
 path: {os.path.abspath('.')}\\datasets\\dataset_1_odb
