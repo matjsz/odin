@@ -6,7 +6,7 @@ import uuid
 import click
 from colorama import Fore
 
-from chronicle_utils import get_chronicle_name
+from .chronicle_utils import get_chronicle_name
 
 logging.basicConfig(
     level=logging.INFO, format=f"[{Fore.CYAN}ODIN{Fore.RESET}][{Fore.YELLOW}%(asctime)s{Fore.RESET}] %(message)s"

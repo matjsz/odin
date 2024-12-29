@@ -4,14 +4,12 @@ import json
 import logging
 import os
 import shutil
-import time
 
 import click
 from colorama import Fore
 from ultralytics import YOLO
-import ultralytics.models
-from chronicle_utils import get_chronicle_name
-from training import BaseTrainingCommands
+from .chronicle_utils import get_chronicle_name
+from .training import BaseTrainingCommands
 
 
 class DetectionTrainingCommands(BaseTrainingCommands):

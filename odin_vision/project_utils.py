@@ -1,4 +1,3 @@
-from gzip import READ
 import os
 import yaml
 

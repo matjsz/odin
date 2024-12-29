@@ -6,9 +6,7 @@ import os
 import shutil
 
 from colorama import Fore
-import ultralytics
-
-from results import YOLOResult
+from .results import YOLOResult
 
 
 class BaseTrainingCommands:

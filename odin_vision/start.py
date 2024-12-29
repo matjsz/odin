@@ -4,7 +4,7 @@ import os
 from colorama import Fore
 import yaml
 
-from constants import EXAMPLE_YAML, README_CHRONICLES, README_WEIGHTS
+from .constants import EXAMPLE_YAML, README_CHRONICLES, README_WEIGHTS
 
 
 class StartCommand:
