@@ -197,14 +197,21 @@ class DetectionModelCommands(BaseModelCommands):
             print(f"{Fore.CYAN}{model_selection_id}{Fore.RESET} - {model_selection[model_selection_id]}")
         print("")
 
-        model_selected = model_selection[click.prompt("Select a model to test", default="0", show_choices=True, type=click.Choice(model_id_options))]
+        model_selected = model_selection[click.prompt("Select a model to publish", default="0", show_choices=True, type=click.Choice(model_id_options))]
         print("")
         
         logging.info(f"Publishing model {Fore.CYAN}{model_selected}{Fore.RESET}...")
         
         now = datetime.datetime.now()
-        new_model_name = f"{project_name}_{now.year}_{now.month}_{now.day}_{chronicle_name}.pt"
+        new_model_name = f"{project_name}.{now.year}.{now.month}.{now.day}.{chronicle_name}"
         
-        shutil.copy(f"{os.path.abspath('.')}\\chronicles\\{chronicle_name}\\weights\\{model_selected}", f"{os.path.abspath('.')}\\weights\\{new_model_name}")
+        shutil.copy(f"{os.path.abspath('.')}\\chronicles\\{chronicle_name}\\weights\\{model_selected}", f"{os.path.abspath('.')}\\weights\\{new_model_name}.pt")
+        
+        with open(f"{os.path.abspath('.')}\\weights\\{new_model_name}.json", "w", encoding="utf8") as wf:
+            wf.write(json.dumps({
+                "created_at": now.strftime("%Y-%m-%d %H:%M:%S"),
+                "chronicle": chronicle_name,
+                "dataset": chronicle_data['dataset']
+            }))
         
         logging.info(f"Succesfully published model {Fore.CYAN}{model_selected}{Fore.RESET} as {Fore.CYAN}{new_model_name}{Fore.RESET}...")
