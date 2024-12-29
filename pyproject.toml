@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "odin"
-version = "0.4.2"
+version = "1.1.0"
 description = ""
-authors = ["Matheus Justino <matheus.justino@astra-sa.com>"]
+authors = ["Matheus J G Silva <matjsz42@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]

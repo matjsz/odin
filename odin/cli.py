@@ -241,5 +241,8 @@ cli.add_command(wrath)
 cli.add_command(dataset)
 cli.add_command(model)
 
-if __name__ == "__main__":
+def main():
     cli()
+
+if __name__ == "__main__":
+    main()
