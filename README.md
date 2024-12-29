@@ -8,7 +8,7 @@
 
 # Odin
 
-**Odin** is an open-source CLI framework for managing big computer vision projects that are based on YOLO.
+**Odin** is an open-source framework for managing big computer vision projects that are based on YOLO.
 
 ## Contents
 
@@ -48,18 +48,38 @@ Odin features includes not only, but mainly:
 > mkdir my-project & cd my-project
 ```
 
+Or your can do it via the API:
+
+```python
+from odin_vision.api.pipeline import OdinProject
+
+my_project = OdinProject(name="my-project", type="classification").create()
+# Or:
+my_project = OdinProject(name="my-project", type="classification", allow_creation=True)
+```
+
 2. Initialize your **Odin** project.
 
 ```
 > odin start my-project --type detection
 ```
 
+If you are using the API, it would already be initialized.
+
 ### Creating and managing your first dataset
 
 1. Create your first dataset.
 
+CLI:
 ```
 > odin dataset create --dataset_name my-dataset
+```
+
+API:
+```python
+my_project.datasets.create("dataset1")
+# Or:
+my_dataset = my_project.datasets.get(by_name="dataset1", allow_creation=True)
 ```
 
 2. Add your dataset data to the **Odin**-managed _my-dataset_.
@@ -70,32 +90,71 @@ Label a new dataset using [Label Studio](https://labelstud.io/), [Roboflow](http
 
 With your new dataset inside the **staging** folder, it's time to "publish" your dataset (publishing means officializing your dataset inside your project, nothing inside your **Odin** project will ever touch the web or get out of your environment).
 
+CLI:
 ```  
 > odin dataset publish --dataset_name my-dataset
+```
+
+API:
+```python
+my_dataset.publish()
+# Or:
+my_project.datasets.publish(dataset="dataset1")
+# Or:
+my_project.datasets.publish(dataset=my_dataset)
 ```
 
 ### Training and maganing your first model
 
 1. Train a model on your published dataset.
 
+CLI:
 ```
 > odin model train --dataset_name my-dataset
+```
+
+API:
+```python
+my_project.models.train(dataset="dataset1")
+# Or:
+my_project.models.train(dataset=my_dataset)
 ```
 
 Once trained, your model will be available at **/chronicles/{chronicle_name}/weights/{model_name}**, but you should follow the good practices of the framework and just use the models inside **/weights** on the root of your project.
 
 2. Test the model
 
+CLI:
 ```
 > odin model test --chronicle_name {chronicle_name}
+```
+
+API:
+```
+Not implemented yet.
 ```
 
 Once tested, you can publish the model if you want, it will really just add the model to the **weights** folder at the root of the project and properly version it, but it's a very good practice to have, it may maintain your project organized.
 
 3. Publish your tested model
 
+CLI:
 ```
 > odin model publish --chronicle_name {chronicle_name}
+```
+
+API:
+```python
+my_models = my_project.models.get("all", "staging", by_dataset="dataset1") # Returns list[OdinModel]
+# Or:
+my_models = my_project.models.get("last", "staging", by_chronicle="epic-hero") # Returns list[OdinModel]
+
+for model in my_models:
+  model.publish()
+
+# Or:
+
+my_project.models.publish(model=my_models[0])
 ```
 
 ## Roadmap
@@ -108,7 +167,7 @@ Features planned for the next updates:
 - [x] Automated training
 - [x] Model versioning
 - [ ] Automated testing report generation
-- [ ] Odin programmatic API
+- [~] Odin programmatic API
 - [ ] Integration with PyTorch Lightning for performance
 
 ## Special thanks and Acknowledgments 
