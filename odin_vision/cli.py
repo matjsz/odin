@@ -27,7 +27,7 @@ def cli():
 )
 def start(project_type, project_name):
     """Starts a new machine vision project."""
-    from start import StartCommand
+    from .start import StartCommand
     
     if not project_name:
         confirmed_name = False
@@ -104,15 +104,15 @@ def model(action, epochs, device, base_model, subset, dataset_name, chronicle_na
     """Trains the model, generating a new chronile based on a specific dataset. The name of the chronicle is not required, but can be passed."""
     # Command interface for model training.
     
-    from project_utils import get_project_info
+    from .project_utils import get_project_info
     project_info = get_project_info()
     project_type = project_info["type"]
                 
     if project_type == "detection":
-        from training_detection import DetectionTrainingCommands
+        from .training_detection import DetectionTrainingCommands
         interpreter = DetectionTrainingCommands(project_type, dataset_name)
     elif project_type == "classification":
-        from training_classification import ClassificationTrainingCommands
+        from .training_classification import ClassificationTrainingCommands
         interpreter = ClassificationTrainingCommands(project_type, dataset_name)
     
     commands = {
@@ -165,9 +165,9 @@ def model(action, epochs, device, base_model, subset, dataset_name, chronicle_na
 def dataset(action, dataset_name, train, val, augs, rollver):
     """Command interface for dataset management."""
     
-    from dataset_classification import DatasetCommandsClassification
-    from dataset_detection import DatasetCommandsDetection
-    from project_utils import get_project_info
+    from .dataset_classification import DatasetCommandsClassification
+    from .dataset_detection import DatasetCommandsDetection
+    from .project_utils import get_project_info
     
     project_info = get_project_info()
     project_type = project_info["type"]

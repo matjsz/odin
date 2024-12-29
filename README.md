@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/logo.png" style="">
+  <img src="https://raw.githubusercontent.com/matjsz/odin/refs/heads/main/docs/logo.png" style="">
 </p>
 <p align="center">
   <img src="https://img.shields.io/pypi/v/odin-vision.svg">
@@ -31,7 +31,7 @@ pip install odin-vision
 
 Odin features includes not only, but mainly:
 
-⚙️ Robust computer vision management tools, such as [GitHub Actions](https://github.com/features/actions):
+⚙️ Robust computer vision management tools, such as:
   - Dataset automated management (creation & version control)
   - Model automated management (training, testing & version control)
   - General project management with a robust project structure that can be automated to a pipeline.
