@@ -1,3 +1,9 @@
+<img src="docs/logo.png" style="">
+
+<img src="https://img.shields.io/pypi/v/odin-vision.svg">
+<img src="https://img.shields.io/pypi/pyversions/odin-vision.svg">
+
+
 # Odin
 
 **Odin** is an open-source CLI framework for managing big computer vision projects that are based on YOLO.
