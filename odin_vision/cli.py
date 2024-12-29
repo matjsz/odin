@@ -1,12 +1,8 @@
 import logging
 import os
 import shutil
-import subprocess
-import uuid
 import click
 from colorama import Fore
-
-from .chronicle_utils import get_chronicle_name
 
 logging.basicConfig(
     level=logging.INFO, format=f"[{Fore.CYAN}ODIN{Fore.RESET}][{Fore.YELLOW}%(asctime)s{Fore.RESET}] %(message)s"
@@ -27,27 +23,31 @@ def cli():
 )
 def start(project_type, project_name):
     """Starts a new machine vision project."""
-    from .start import StartCommand
+    from odin_vision.start.base import BaseStartCommand
     
     if not project_name:
         confirmed_name = False
         
         while not confirmed_name:
+            print("")
             project_name = click.prompt(
-                f"What is the project's name?"
+                f"The new project's {Fore.CYAN}name{Fore.RESET}"
             )
+            print("")
             
             if click.confirm(f'{Fore.CYAN}{project_name}{Fore.RESET}, is this name right?'):
                 confirmed_name = True
     
     if not project_type:
+        print("")
         project_type = click.prompt(
-            f"What is the project's type?",
+            f"The new project's {Fore.CYAN}type{Fore.RESET}",
             show_choices=True,
             type=click.Choice([f'classification', f'detection']),
         )
+        print("")
     
-    builder = StartCommand(project_type, project_name)
+    builder = BaseStartCommand(project_type, project_name)
     
     project_builders = {
         "classification": builder.classification,
@@ -101,19 +101,18 @@ def start(project_type, project_name):
     help="the name of the dataset to use."
 )
 def model(action, epochs, device, base_model, subset, dataset_name, chronicle_name):
-    """Trains the model, generating a new chronile based on a specific dataset. The name of the chronicle is not required, but can be passed."""
-    # Command interface for model training.
+    """Command interface for model training, testing and version control."""
     
-    from .project_utils import get_project_info
+    from odin_vision.project.utils import get_project_info
     project_info = get_project_info()
     project_type = project_info["type"]
                 
     if project_type == "detection":
-        from .training_detection import DetectionTrainingCommands
-        interpreter = DetectionTrainingCommands(project_type, dataset_name)
+        from odin_vision.model.detection import DetectionModelCommands
+        interpreter = DetectionModelCommands(project_type, dataset_name)
     elif project_type == "classification":
-        from .training_classification import ClassificationTrainingCommands
-        interpreter = ClassificationTrainingCommands(project_type, dataset_name)
+        from odin_vision.model.classification import ClassificationModelCommands
+        interpreter = ClassificationModelCommands(project_type, dataset_name)
     
     commands = {
         "train": interpreter.train,
@@ -165,9 +164,9 @@ def model(action, epochs, device, base_model, subset, dataset_name, chronicle_na
 def dataset(action, dataset_name, train, val, augs, rollver):
     """Command interface for dataset management."""
     
-    from .dataset_classification import DatasetCommandsClassification
-    from .dataset_detection import DatasetCommandsDetection
-    from .project_utils import get_project_info
+    from odin_vision.dataset.classification import DatasetCommandsClassification
+    from odin_vision.dataset.detection import DatasetCommandsDetection
+    from odin_vision.project.utils import get_project_info
     
     project_info = get_project_info()
     project_type = project_info["type"]
@@ -176,12 +175,16 @@ def dataset(action, dataset_name, train, val, augs, rollver):
         confirmed_name = False
         
         while not confirmed_name:
+            print("")
             dataset_name = click.prompt(
-                f"What is the dataset's name?"
+                f"The dataset's {Fore.CYAN}name{Fore.RESET}"
             )
+            print("")
             
+            print("")
             if click.confirm(f'{Fore.CYAN}{dataset_name}{Fore.RESET}, is this name right?'):
                 confirmed_name = True
+            print("")
 
     if project_type == "detection":
         interpreter = DatasetCommandsDetection(dataset_name)
@@ -202,11 +205,15 @@ def dataset(action, dataset_name, train, val, augs, rollver):
 
 @click.command("wrath")
 def wrath():
+    """Deletes the current project, irreversible."""
+    
     logging.info(
         f"Warning! Beyond this decision rests the {Fore.RED}DOOM{Fore.RESET} of all your {Fore.CYAN}datasets{Fore.RESET}, {Fore.CYAN}chronicles{Fore.RESET} and {Fore.CYAN}weights{Fore.RESET}."
     )
 
+    print("")
     if click.confirm("Do you want to continue?"):
+        print("")
         logging.info(
             f"Laying down {Fore.CYAN}Odin's{Fore.RESET} wrath against thy foe(der)s!"
         )
@@ -233,6 +240,7 @@ def wrath():
 
         logging.info("This land has been purged.")
     else:
+        print("")
         logging.info(f"So the {Fore.RED}Ragnarok{Fore.RESET} must wait.")
 
 

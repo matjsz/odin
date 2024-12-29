@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "odin-vision"
-version = "1.1.5"
+version = "1.1.6"
 description = "Odin is an open-source CLI framework for managing big computer vision projects that are based on YOLO."
 authors = ["Matheus J G Silva <matjsz42@gmail.com>"]
 readme = "README.md"

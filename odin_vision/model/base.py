@@ -6,10 +6,10 @@ import os
 import shutil
 
 from colorama import Fore
-from .results import YOLOResult
+from odin_vision.model.results import YOLOResult
 
 
-class BaseTrainingCommands:
+class BaseModelCommands:
     def __init__(self, type, dataset_name):
         self.type = type
         self.dataset_name = dataset_name

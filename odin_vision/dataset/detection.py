@@ -13,8 +13,8 @@ import albumentations as A
 from colorama import Fore
 import cv2
 import yaml
-from .dataset import BaseDatasetCommands
-from .constants import README_CUSTOM_DATASETS
+from odin_vision.dataset.base import BaseDatasetCommands
+from odin_vision.constants import README_CUSTOM_DATASETS
 
 
 class DatasetCommandsDetection(BaseDatasetCommands):

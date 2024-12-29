@@ -8,14 +8,14 @@ import shutil
 import click
 from colorama import Fore
 from ultralytics import YOLO
-from .chronicle_utils import get_chronicle_name
-from .training import BaseTrainingCommands
+from odin_vision.chronicle.utils import get_chronicle_name
+from odin_vision.model.base import BaseModelCommands
 
 
-class ClassificationTrainingCommands(BaseTrainingCommands):
+class DetectionModelCommands(BaseModelCommands):
     def train(self, epochs: int=0, device: str="", base_model: str="", dataset_name: str="", chronicle_name: str="", subset: int=0, **kwargs):
         if not base_model:
-            base_model = "yolo11n-cls.pt"
+            base_model = "yolo11n.pt"
         
         if subset < 100:
             model_type = "naive"
@@ -26,15 +26,20 @@ class ClassificationTrainingCommands(BaseTrainingCommands):
             confirmed_name = False
             
             while not confirmed_name:
+                print("")
                 dataset_name = click.prompt(
-                    f"What is the dataset's name?"
+                    f"The dataset's {Fore.CYAN}name{Fore.RESET}"
                 )
+                print("")
                 
                 if click.confirm(f'{Fore.CYAN}{dataset_name}{Fore.RESET}, is this name right?'):
                     confirmed_name = True
+                print("")
         
         if not chronicle_name:
+            print("")
             chronicle_name = click.prompt(f"What will be the name of the {Fore.CYAN}chronicle{Fore.RESET}? If left empty, will create at", default=get_chronicle_name())
+            print("")
         
         chronicles_path = f"{os.path.abspath('.')}\\chronicles" 
         chronicle_path = f"{os.path.abspath('.')}\\chronicles\\{chronicle_name}"
@@ -58,9 +63,9 @@ class ClassificationTrainingCommands(BaseTrainingCommands):
         
         yolo_command = [
             "yolo",
-            "classify",
+            "detect",
             "train",
-            f"data={dataset_path}",
+            f"data={dataset_path}\\data.yaml",
             f"epochs={epochs}",
             f"batch={'-1' if device == 'gpu' else '2'}",
             f"model={base_model}",
@@ -91,24 +96,31 @@ class ClassificationTrainingCommands(BaseTrainingCommands):
             confirmed_name = False
             
             while not confirmed_name:
+                print("")
                 chronicle_name = click.prompt(
-                    f"What is the chronicle's name?"
+                    f"The chronicle's {Fore.CYAN}name{Fore.RESET}"
                 )
+                print("")
                 
                 if click.confirm(f'{Fore.CYAN}{chronicle_name}{Fore.RESET}, is this name right?'):
                     confirmed_name = True
+                print("")
         
         chronicle_data = self._get_chronicle_data(f"{os.path.abspath('.')}\\chronicles\\{chronicle_name}")
         dataset_name = chronicle_data["dataset"]
         
-        classes = []
-        for _, class_folders, _ in os.walk(f"{os.path.abspath('.')}\\datasets\\{dataset_name}\\val"):
-            classes = class_folders
-            break
+        val_images_path = f"{os.path.abspath('.')}\\datasets\\{dataset_name}\\val\\images"
+        
+        val_images = []
         
         chronicle_models_path = f"{os.path.abspath('.')}\\chronicles\\{chronicle_name}\\weights"
         eligible_models = []
         
+        for _, _, files in os.walk(val_images_path):
+            for file in files:
+                image_path = f"{os.path.abspath('.')}\\datasets\\{dataset_name}\\val\\images\\{file}"
+                val_images.append(image_path)
+                
         for _, _, files in os.walk(chronicle_models_path):
             for file in files:
                 if self._check_if_eligible_model(file):
@@ -132,42 +144,33 @@ class ClassificationTrainingCommands(BaseTrainingCommands):
         model_selected = model_selection[click.prompt("Select a model to test", default="0", show_choices=True, type=click.Choice(model_id_options))]
         print("")
         
-        model: YOLO = YOLO(f"{os.path.abspath('.')}\\chronicles\\{chronicle_name}\\weights\\{model_selected}", verbose=False)
-                    
-        logging.info(f"Successfully loaded model {Fore.CYAN}{model_selected}{Fore.RESET}.")
+        logging.info(f"Loading model {Fore.CYAN}{model_selected}{Fore.RESET}...")
         
-        for dataset_class in classes:
-            logging.info(f"Testing the following class: {Fore.CYAN}{dataset_class}{Fore.RESET}")
-            
-            val_images_path = f"{os.path.abspath('.')}\\datasets\\{dataset_name}\\val\\{dataset_class}"
-            
-            val_images = []
-            
-            for _, _, files in os.walk(val_images_path):
-                for file in files:
-                    image_path = f"{os.path.abspath('.')}\\datasets\\{dataset_name}\\val\\{dataset_class}\\{file}"
-                    val_images.append(image_path)
-            
-            logging.info(f"Loading model {Fore.CYAN}{model_selected}{Fore.RESET}...")
-                    
-            results = model.predict(val_images, verbose=False)
-            odin_results = self._gather_yolo_results(results)
+        model: YOLO = YOLO(f"{os.path.abspath('.')}\\chronicles\\{chronicle_name}\\weights\\{model_selected}", verbose=False)
                 
-            for result in odin_results:
-                logging.info(f"Speed: {result.inference_speed}")
-                result.show()
+        logging.info(f"Successfully loaded model {Fore.CYAN}{model_selected}{Fore.RESET}.")
                 
+        results = model.predict(val_images, verbose=False)
+        odin_results = self._gather_yolo_results(results)
+            
+        for result in odin_results:
+            logging.info(f"Speed: {result.inference_speed}")
+            result.show()
+            
     def publish(self, project_name: str="", chronicle_name: str="", **kwargs):
         if not chronicle_name:
             confirmed_name = False
             
             while not confirmed_name:
+                print("")
                 chronicle_name = click.prompt(
-                    f"What is the chronicle's name?"
+                    f"The chronicle's {Fore.CYAN}name{Fore.RESET}"
                 )
+                print("")
                 
                 if click.confirm(f'{Fore.CYAN}{chronicle_name}{Fore.RESET}, is this name right?'):
                     confirmed_name = True
+                print("")
         
         chronicle_data = self._get_chronicle_data(f"{os.path.abspath('.')}\\chronicles\\{chronicle_name}")
         
@@ -193,7 +196,7 @@ class ClassificationTrainingCommands(BaseTrainingCommands):
         for model_selection_id in model_selection:
             print(f"{Fore.CYAN}{model_selection_id}{Fore.RESET} - {model_selection[model_selection_id]}")
         print("")
-        
+
         model_selected = model_selection[click.prompt("Select a model to test", default="0", show_choices=True, type=click.Choice(model_id_options))]
         print("")
         

@@ -4,10 +4,10 @@ import os
 from colorama import Fore
 import yaml
 
-from .constants import EXAMPLE_YAML, README_CHRONICLES, README_WEIGHTS
+from odin_vision.constants import EXAMPLE_YAML, README_CHRONICLES, README_WEIGHTS
 
 
-class StartCommand:
+class BaseStartCommand:
     def __init__(self, project_type, project_name):
         self.project_name = project_name
         self.project_type = project_type
