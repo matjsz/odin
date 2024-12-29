@@ -9,7 +9,7 @@ from colorama import Fore
 from chronicle_utils import get_chronicle_name
 
 logging.basicConfig(
-    level=logging.INFO, format=f"[{Fore.YELLOW}%(asctime)s{Fore.RESET}] %(message)s"
+    level=logging.INFO, format=f"[{Fore.CYAN}ODIN{Fore.RESET}][{Fore.YELLOW}%(asctime)s{Fore.RESET}] %(message)s"
 )
 
 @click.group()
@@ -17,17 +17,35 @@ def cli():
     pass
 
 @click.command("start")
+@click.argument("project_name", default=None, required=False)
 @click.option(
     "-t",
     "--type",
     "project_type",
-    default="detection",
+    default=None,
     help="the project's type, must be either 'detection' (object detection) or 'classification'.",
 )
-@click.argument("project_name")
 def start(project_type, project_name):
     """Starts a new machine vision project."""
     from start import StartCommand
+    
+    if not project_name:
+        confirmed_name = False
+        
+        while not confirmed_name:
+            project_name = click.prompt(
+                f"What is the project's name?"
+            )
+            
+            if click.confirm(f'{Fore.CYAN}{project_name}{Fore.RESET}, is this name right?'):
+                confirmed_name = True
+    
+    if not project_type:
+        project_type = click.prompt(
+            f"What is the project's type?",
+            show_choices=True,
+            type=click.Choice([f'classification', f'detection']),
+        )
     
     builder = StartCommand(project_type, project_name)
     
@@ -42,7 +60,12 @@ def start(project_type, project_name):
 
     builder.create_models_structure()
 
-@click.command("train")
+@click.command("model")
+@click.argument("action", type=click.Choice([
+    'train',
+    'test',
+    'publish'
+]))
 @click.option(
     "--epochs",
     default=30,
@@ -55,56 +78,62 @@ def start(project_type, project_name):
 )
 @click.option(
     "--base_model",
-    default="yolo11n.pt",
+    default=None,
     help="the pre-trained model to use for training.",
 )
-@click.argument("dataset_name")
-@click.argument(
-    "chronicle_name",
-    default=get_chronicle_name,
+@click.option(
+    "--subset",
+    default=100,
+    help="the percentage of the training dataset to use for the actual training of the model.",
 )
-def train(epochs, device, base_model, dataset_name, chronicle_name):
+@click.option(
+    "-C",
+    "--chronicle",
+    "chronicle_name",
+    default=None,
+    help="the name of the chronicle to use."
+)
+@click.option(
+    "-D",
+    "--dataset",
+    "dataset_name",
+    default=None,
+    help="the name of the dataset to use."
+)
+def model(action, epochs, device, base_model, subset, dataset_name, chronicle_name):
     """Trains the model, generating a new chronile based on a specific dataset. The name of the chronicle is not required, but can be passed."""
+    # Command interface for model training.
     
     from project_utils import get_project_info
-    
-    chronicle_info = {
-        "name": chronicle_name,
-        "dataset": dataset_name,
-        "epochs": epochs,
-        "device": device,
-    }
-
     project_info = get_project_info()
     project_type = project_info["type"]
-    task = "detect" if project_type == "detection" else "classify"
-
-    logging.info("Starting training...")
-
-    subprocess.run(
-        [
-            "yolo",
-            task,
-            "train",
-            f"data={os.path.abspath('.')}\\datasets\\{dataset_name}\\data.yaml",
-            f"epochs={epochs}",
-            f"batch={'-1' if device == 'gpu' else '2'}",
-            f"model={base_model}",
-            "amp=false",
-            "patience=10",
-            "save_period=5",
-            f"device={'0' if device == 'gpu' else 'cpu'}",
-            f"project={chronicle_name}",
-            f"name={str(uuid.uuid4())}",
-            "exist_ok=true",
-            "plots=true",
-        ]
-    )
-
+                
+    if project_type == "detection":
+        from training_detection import DetectionTrainingCommands
+        interpreter = DetectionTrainingCommands(project_type, dataset_name)
+    elif project_type == "classification":
+        from training_classification import ClassificationTrainingCommands
+        interpreter = ClassificationTrainingCommands(project_type, dataset_name)
+    
+    commands = {
+        "train": interpreter.train,
+        "test": interpreter.test,
+        "publish": interpreter.publish
+    }
+    
+    commands[action](epochs=epochs, project_name=project_info["name"], device=device, base_model=base_model, dataset_name=dataset_name, chronicle_name=chronicle_name, subset=subset)
 
 @click.command("dataset")
-@click.argument("action")
-@click.argument("dataset_name")
+@click.argument("action", type=click.Choice([
+    'create',
+    'publish',
+    'status',
+    'delete', 
+    'augmentate',
+    'rollback', 
+    'yaml'
+]))
+@click.option("-D", "--dataset_name", "dataset_name", default=None, help="the dataset name.")
 @click.option(
     "-t",
     "--train",
@@ -134,12 +163,25 @@ def train(epochs, device, base_model, dataset_name, chronicle_name):
     help="the version to rollback to, must be a valid version.",
 )
 def dataset(action, dataset_name, train, val, augs, rollver):
+    """Command interface for dataset management."""
+    
     from dataset_classification import DatasetCommandsClassification
     from dataset_detection import DatasetCommandsDetection
     from project_utils import get_project_info
     
     project_info = get_project_info()
     project_type = project_info["type"]
+
+    if not dataset_name:
+        confirmed_name = False
+        
+        while not confirmed_name:
+            dataset_name = click.prompt(
+                f"What is the dataset's name?"
+            )
+            
+            if click.confirm(f'{Fore.CYAN}{dataset_name}{Fore.RESET}, is this name right?'):
+                confirmed_name = True
 
     if project_type == "detection":
         interpreter = DatasetCommandsDetection(dataset_name)
@@ -195,9 +237,9 @@ def wrath():
 
 
 cli.add_command(start)
-cli.add_command(train)
 cli.add_command(wrath)
 cli.add_command(dataset)
+cli.add_command(model)
 
 if __name__ == "__main__":
     cli()

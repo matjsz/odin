@@ -41,11 +41,7 @@ class DatasetCommandsClassification(BaseDatasetCommands):
             wf.write(README_CUSTOM_DATASETS)
 
         os.makedirs(self.dataset_path + "\\train")
-        os.makedirs(self.dataset_path + "\\train\\class_1")
-        os.makedirs(self.dataset_path + "\\train\\class_2")
         os.makedirs(self.dataset_path + "\\val")
-        os.makedirs(self.dataset_path + "\\val\\class_1")
-        os.makedirs(self.dataset_path + "\\val\\class_2")
 
         logging.info("Succesfully created final folders.")
 
@@ -97,6 +93,9 @@ class DatasetCommandsClassification(BaseDatasetCommands):
                 image_stage_path = (
                     f"{self.dataset_path}\\staging\\{dataset_class}\\{images[i]}"
                 )
+                
+                self._try_create_folder(f"{self.dataset_path}\\{split}\\{dataset_class}")
+                
                 image_publish_path = (
                     f"{self.dataset_path}\\{split}\\{dataset_class}\\{images[i]}"
                 )
