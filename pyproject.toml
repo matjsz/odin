@@ -19,4 +19,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-odin="odin-vision.cli:main"
+odin="odin_vision.cli:main"
