@@ -1,8 +1,10 @@
-<img src="docs/logo.png" style="">
-
-<img src="https://img.shields.io/pypi/v/odin-vision.svg">
-<img src="https://img.shields.io/pypi/pyversions/odin-vision.svg">
-
+<p align="center">
+  <img src="docs/logo.png" style="">
+</p>
+<p align="center">
+  <img src="https://img.shields.io/pypi/v/odin-vision.svg">
+  <img src="https://img.shields.io/pypi/pyversions/odin-vision.svg">
+</p>
 
 # Odin
 
