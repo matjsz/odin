@@ -88,6 +88,18 @@ class CouldNotFindDatasetByNameError(Exception):
         self.message = f"Couldn't find a dataset named as {Fore.LIGHTRED_EX}{name}{Fore.RESET}. Check the name again or set {Fore.CYAN}allow_creation{Fore.RESET} to True at your {Fore.CYAN}OdinProject.datasets.get{Fore.RESET} function."
         super().__init__(self.message)
         
+class CouldNotFindChronicleByNameError(Exception):
+    """Exception raised when chronicle is not found by name and allow_creation is not True.
+
+    Attributes:
+        name - the project name that caused the error
+    """
+
+    def __init__(self, name):
+        self.name = name
+        self.message = f"Couldn't find a chronicle named as {Fore.LIGHTRED_EX}{name}{Fore.RESET}. Check the name again."
+        super().__init__(self.message)
+        
 class DatasetNotInformedError(Exception):
     """Exception raised when dataset is not informed when performing a dataset action.
     """
@@ -108,4 +120,12 @@ class InvalidSplitPercentagesError(Exception):
         self.train = train
         self.val = val
         self.message = f"The split values ({Fore.LIGHTRED_EX}train{Fore.RESET}: {train} | {Fore.LIGHTRED_EX}val{Fore.RESET}: {val}) doesn't sum to 100, it is either below or above 100."
+        super().__init__(self.message)
+        
+class ModelNotInformedError(Exception):
+    """Exception raised when model is not informed when performing a model action.
+    """
+
+    def __init__(self):
+        self.message = f"A model wasn't informed to the function. Please provide a {Fore.CYAN}model name{Fore.RESET} or a {Fore.CYAN}model instance{Fore.RESET}."
         super().__init__(self.message)
