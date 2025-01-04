@@ -21,7 +21,14 @@ def cli():
     default=None,
     help="the project's type, must be either 'detection' (object detection) or 'classification'.",
 )
-def start(project_type, project_name):
+@click.option(
+    "-e",
+    "--examples",
+    "dataset_examples",
+    default=None,
+    help="the project's type, must be either 'detection' (object detection) or 'classification'.",
+)
+def start(project_type, project_name, dataset_examples):
     """Starts a new machine vision project."""
     from odin_vision.start.base import BaseStartCommand
     
@@ -56,8 +63,17 @@ def start(project_type, project_name):
     
     builder.create_datasets_structure()
     
-    project_builders[project_type]()
-
+    if isinstance(dataset_examples, bool) and dataset_examples:
+        project_builders[project_type]()
+    elif not isinstance(dataset_examples, bool):
+        print("")
+        dataset_examples = click.confirm(
+            f"Can {Fore.CYAN}Odin{Fore.RESET} create an example dataset?"
+        )
+        print("")
+        
+        if dataset_examples:
+            project_builders[project_type]()
     builder.create_models_structure()
 
 @click.command("model")
