@@ -26,7 +26,7 @@ class DatasetCommandsDetection(BaseDatasetCommands):
     def _create_dataset_metadata_files(self, **kwargs):
         self._try_create_folder(self.dataset_path)
         
-        dataset_info = {"type": "obd", "version": "0.1.0", "snapshots": {}}
+        dataset_info = {"type": "detection", "version": "0.1.0", "snapshots": {}}
         
         with open(f"{self.dataset_path}\\dataset.json", "w", encoding="utf8") as wf:
             wf.write(json.dumps(dataset_info))
