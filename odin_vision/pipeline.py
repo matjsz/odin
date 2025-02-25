@@ -159,7 +159,7 @@ class SuccessFlow:
                 self.sources.append(i)
                 self.targets.append(i + 1)
 
-                self.flow_callers.append(pipeline.pipeline_actors[i].name)
+            self.flow_callers.append(pipeline.pipeline_actors[i].name)
 
 
 class FallbackIndexes:
@@ -204,7 +204,7 @@ class FallbackFlow:
 
             self.colors.append(temp_color)
             self.sources.append(source_index - 1)
-            if source_index <= len(pipeline.pipeline_actors) - 1:
+            if source_index < len(pipeline.pipeline_actors) - 1:
                 self.targets.append(source_index + 1)
             else:
                 self.targets.append(source_index)
@@ -236,7 +236,7 @@ def get_pipeline_diagram(pipeline: Pipeline, show_on_browser=True, save_image=Tr
                     pad=15,
                     thickness=20,
                     # line=dict(color=["black", "blue", "blue"], width=0.5),
-                    label=["actor1", "actor2", "actor3", "actor4"],
+                    label=successful_flow.flow_callers,
                     align="left",
                 ),
                 link=dict(
