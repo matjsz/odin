@@ -88,7 +88,7 @@ class Pipeline:
                 )
                 fatal_failure = True
                 break
-            elif not actor_execution.passed and not actor.stop_on_failure:
+            elif not actor_execution.passed and not actor.stop_on_failure and not actor.fallback:
                 logging.warning(
                     f"Skipping pipeline {Fore.CYAN}{actor.name}{Fore.RESET} since no {Fore.YELLOW}fallback{Fore.RESET} reference has been passed and actor is set to {Fore.RED}not{Fore.RESET} early stop on failure."
                 )
